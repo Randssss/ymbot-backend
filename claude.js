@@ -3,7 +3,11 @@ const { GoogleGenAI } = require('@google/genai');
 require('dotenv').config();
 
 const claude = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-const gemini = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const gemini = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY?.trim() });
+
+if (!process.env.GEMINI_API_KEY) {
+  throw new Error('GEMINI_API_KEY is not set');
+}
 
 function buildSystemPrompt(dataKelas, dataTugas) {
   const today = new Date().toLocaleDateString('id-ID', {
@@ -31,7 +35,7 @@ Tugasmu:
   `;
 }
 
-async function callGemini(systemPrompt, riwayatChat, pesanUser, retries = 2) {
+async function callGemini(systemPrompt, riwayatChat, pesanUser) {
   const contents = [
     ...riwayatChat.map(msg => ({
       role: msg.role === 'assistant' ? 'model' : 'user',
@@ -40,24 +44,13 @@ async function callGemini(systemPrompt, riwayatChat, pesanUser, retries = 2) {
     { role: 'user', parts: [{ text: pesanUser }] }
   ];
 
-  for (let i = 0; i <= retries; i++) {
-    try {
-      const response = await gemini.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents,
-        config: { systemInstruction: systemPrompt }
-      });
-      return response.text;
-    } catch (err) {
-      const isOverloaded = err.message?.includes('UNAVAILABLE') || err.message?.includes('503');
-      if (isOverloaded && i < retries) {
-        console.warn(`⏳ Gemini overload, coba lagi... (percobaan ${i + 1})`);
-        await new Promise(r => setTimeout(r, 1500 * (i + 1)));
-        continue;
-      }
-      throw err;
-    }
-  }
+  const response = await gemini.models.generateContent({
+    model: 'gemini-2.5-flash',
+    contents,
+    config: { systemInstruction: systemPrompt }
+  });
+
+  return response.text;
 }
 
 async function callClaude(systemPrompt, riwayatChat, pesanUser) {
@@ -82,9 +75,11 @@ async function tanyaBot(pesanUser, dataKelas, dataTugas, riwayatChat) {
     console.warn('⚠️ Gemini gagal, fallback ke Claude. Alasan:', err.message);
     try {
       return await callClaude(systemPrompt, riwayatChat, pesanUser);
-    } catch (err2) {
-      console.error('❌ Claude juga gagal:', err2.message);
-      return 'Maaf, YMBot lagi sibuk banget nih 😅 Server AI-nya lagi rame, coba kirim pesan sekali lagi ya sebentar lagi!';
+    } catch (error) {
+      if (error.status === 429) {
+        return 'Maaf, AI lagi sibuk! Coba lagi dalam 1 menit ya 😊';
+      }
+      throw error;
     }
   }
 }

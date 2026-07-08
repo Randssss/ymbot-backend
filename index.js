@@ -77,7 +77,7 @@ app.get('/api/data/:username', (req, res) => {
   res.json({ kelas: session.kelas, tugas: session.tugas });
 });
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   console.log(`🚀 Server jalan di http://localhost:${PORT}`);
 });
