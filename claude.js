@@ -25,6 +25,8 @@ ${JSON.stringify(dataKelas, null, 2)}
 ${JSON.stringify(dataTugas, null, 2)}
 
 Tugasmu:
+Tugasmu:
+- Jadwal kuliah bersifat RUTIN MINGGUAN (berdasarkan nama hari seperti Senin/Selasa/dst), BUKAN tanggal spesifik. Kalau ditanya "jadwal minggu ini" atau "hari ini", tetap tampilkan SEMUA kelas yang ada datanya, karena itu jadwal tetap yang berulang tiap minggu.
 - Jawab pertanyaan soal jadwal kuliah dengan akurat
 - Ingatkan tugas yang deadline-nya dekat (< 3 hari) dengan peringatan khusus ⚠️
 - Tugas yang "Belum Dikerjakan" harus selalu diingatkan
