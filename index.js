@@ -76,7 +76,9 @@ app.get('/api/data/:username', (req, res) => {
   if (!session) return res.status(404).json({ error: 'Session tidak ada' });
   res.json({ kelas: session.kelas, tugas: session.tugas });
 });
-
+app.get('/debug-screenshot', (req, res) => {
+  res.sendFile(__dirname + '/debug-kelas.png');
+});
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   console.log(`🚀 Server jalan di http://localhost:${PORT}`);
